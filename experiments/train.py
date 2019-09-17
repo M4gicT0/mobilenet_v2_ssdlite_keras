@@ -9,6 +9,7 @@ import numpy as np
 import imgaug.augmenters as iaa
 
 from tqdm import tqdm
+from keras_radam import RAdam
 from keras import backend as K
 from keras.optimizers import Adam
 from losses.keras_ssd_loss import SSDLoss
@@ -107,13 +108,14 @@ class Trainer:
         # build model
         model = mobilenet_v2_ssd(self.training_config)
         print(model.summary())
-        print("[*] Exporting model to {}/model.json".format(self.log_dir))
-        with open(os.path.join(self.log_dir, 'model.json'), 'w') as f:
-            f.write(model.to_json())
+        # print("[*] Exporting model to {}/model.json".format(self.log_dir))
+        # with open(os.path.join(self.log_dir, 'model.json'), 'w') as f:
+        #     f.write(model.to_json())
 
         # load weights
         if self.weights_path:
             if self.restore:
+                print("[*] Loading weights from {}".format(self.weights_path))
                 model.load_weights(self.weights_path, by_name=True)
                 initial_epoch = self.epoch
             else:
@@ -121,7 +123,8 @@ class Trainer:
                 model = self.transfer_weights(model)
 
         # compile the model
-        adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        # adam = Adam(lr=1e-7, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        adam = RAdam(lr=1e-9)
         ssd_loss = SSDLoss(neg_pos_ratio=3, alpha=1.0)
         # set_trainable(r"(ssd\_[cls|box].*)", model)
         model.compile(optimizer=adam, loss=ssd_loss.compute_loss)
@@ -223,7 +226,7 @@ class Trainer:
                                                  verbose=1,
                                                  epsilon=0.001,
                                                  cooldown=0,
-                                                 min_lr=0.0000001)
+                                                 min_lr=1e-15)
 
 
         callbacks = [reduce_learning_rate,

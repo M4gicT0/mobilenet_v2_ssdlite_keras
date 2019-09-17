@@ -801,6 +801,35 @@ class Evaluator:
         if ret:
             return cumulative_precisions, cumulative_recalls
 
+
+    def compute_confusion_matrix(self, verbose=True, ret=False):
+        if (self.cumulative_true_positives is None) or (self.cumulative_false_positives is None):
+            raise ValueError(
+                "True and false positives not available. \
+                You must run `match_predictions()` before you call this method.")
+
+        if self.num_gt_per_class is None:
+            raise ValueError(
+                "Number of ground truth boxes per class not available. \
+                You must run `get_num_gt_per_class()` before you call this method.")
+
+        cumulative_precisions = [[]]
+        cumulative_recalls = [[]]
+
+        # Iterate over all classes.
+        for class_id in range(1, self.n_classes + 1):
+
+            if verbose:
+                print("Computing precisions and recalls, class {}/{}".format(class_id, self.n_classes))
+
+            tp = self.cumulative_true_positives[class_id]
+            fp = self.cumulative_false_positives[class_id]
+            # tn = self.cumulative_true_negatives[class_id]
+            # fn = self.cumulative_false_negatives[class_id]
+
+            # print()
+
+
     def compute_average_precisions(self, mode='sample', num_recall_points=11, verbose=True, ret=False):
         """
         Computes the average precision for each class.

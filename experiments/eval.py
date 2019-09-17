@@ -42,7 +42,7 @@ class Evaluator:
         return model
 
     def eval(self):
-        classes = ['Background', 'Target 1', 'Target 2', 'Forward gate', 'Backward gate']
+        classes = ['Background', 'Target 1', 'Forward gate', 'Backward gate']
         val_dataset = DataGenerator(load_images_into_memory=False, hdf5_dataset_path=None)
         val_dataset.parse_custom_json(self.path,
                                       ground_truth_available=True)
@@ -52,13 +52,14 @@ class Evaluator:
         results = evaluator(img_height=self.config['input_res'][0],
                             img_width=self.config['input_res'][1],
                             batch_size=self.config['batch_size'],
-                            matching_iou_threshold=0.5, return_precisions=True,
+                            matching_iou_threshold=0.9, return_precisions=True,
                             return_recalls=True,
                             return_average_precisions=True, verbose=True)
         mean_average_precision, average_precisions, precisions, recalls = results
 
         for i in range(1, len(average_precisions)):
             print("{:<14}{:<6}{}".format(classes[i], 'AP', round(average_precisions[i], 3)))
+            print("{:<14}{:<6}{}".format(classes[i], 'AR', round(np.average(recalls[i]), 3)))
             print()
             print("{:<14}{:<6}{}".format('','mAP', round(mean_average_precision, 3)))
 
